@@ -52,7 +52,7 @@ bool viewManager::setOffset(unsigned __int64 baseOffset) {
 	return true;
 }
 
-inline unsigned __int64 viewManager::getOffset() const {
+unsigned __int64 viewManager::getOffset() const {
 	return offset + charCounter;
 }
 
