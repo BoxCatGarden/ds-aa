@@ -176,13 +176,16 @@ void huffman::writeFileHead(writer& rWriter, const file_head& head) {
 			//write file size byte-length bit: 3
 			headByte[0] |= (i-1)<<3;
 			//write tree node record length bit: 3
-			unsigned char j = head.tree.nodeRecordLength - 1;  //no more than 64
-			unsigned char k = 0;  //therefore, k is no more than 7
-			while (j) {
-				++k;
-				j >>= 1;
-			}
-			headByte[0] |= k&7;
+			unsigned char k;  //k is no more than 7
+			if (head.tree.nodeRecordLength) {
+				k = 0;
+				unsigned char j = head.tree.nodeRecordLength - 1;  //because j is less than 64
+				while (j) {
+					++k;
+					j >>= 1;
+				}
+			} else k = 7;  //here 7 means the exceptional situation
+			headByte[0] |= k;
 			//output head bytes
 			rWriter.writer::write(headByte, i + 1);
 			//output tree
@@ -207,7 +210,7 @@ void huffman::readFileHead(reader& rReader, file_head& head) {
 			head.sizeHigh = (unsigned int)(fileSize>>32);
 			head.sizeLow = (unsigned int)(fileSize&0xFFFFFFFF);
 			//read node record length range
-			if (i = flag&7) head.tree.nodeRecordLength = 1<<i;
+			if ((i = flag&7) != 7) head.tree.nodeRecordLength = 1<<i;
 		}
 	}
 }
