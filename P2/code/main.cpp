@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "bitwriter.h"
 #include "charwriter.h"
 #include "huffman.h"
@@ -20,9 +20,12 @@ int main() {
 	string targetFile;
 	huffman h;
 
-	cout << "！！！警告：在压缩或解压时点击其他窗口可能导致本控制台程序假死！！！" << endl;
-	cout << "！！！警告：在压缩或解压时点击其他窗口可能导致本控制台程序假死！！！" << endl;
-	cout << "！！！警告：在压缩或解压时点击其他窗口可能导致本控制台程序假死！！！" << endl;
+	cout << "Note:" << endl;
+	cout << "This program can only used to compress a file and decompress a file previously compressed by it." << endl;
+	cout << "The only exceptional situation it can hold is to compress or decompress a file of size 0." << endl;
+	cout << "Don't try any other dangerous action like compressing a directory and later decompressing it!" << endl;
+	cout << "Please don't do any other thing while this console application is compressing and decompressing" << endl;
+	cout << "a file because that may lead to a shock after the work's being done." << endl << endl;
 	printMenu();
 	cin >> choice;
 	while (choice != 3) {
@@ -37,7 +40,7 @@ int main() {
 			cout << "compressing..." << endl;
 			h.encode(originlFile.data(), targetFile.data(), true);
 			if (h.hasError) {
-				cout << h.LastError << endl;
+				cout << "error:" + h.LastError << endl << endl;
 			} else {
 				cout << "succeed" << endl << endl;
 			}
@@ -52,7 +55,7 @@ int main() {
 			cout << "decompressing..." << endl;
 			h.decode(originlFile.data(), targetFile.data());
 			if (h.hasError) {
-				cout << h.LastError << endl;
+				cout << "error:" + h.LastError << endl << endl;
 			} else {
 				cout << "succeed" << endl << endl;
 			}
@@ -70,6 +73,7 @@ int main() {
 }
 
 void printMenu() {
+	cout << "Menu:" << endl;
 	cout << "1.compress" << endl;
 	cout << "2.decompress" << endl;
 	cout << "3.terminate" << endl;

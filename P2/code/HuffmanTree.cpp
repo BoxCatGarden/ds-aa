@@ -31,11 +31,12 @@ HuffmanTree::HuffmanTree(reader& rReader)
 	unsigned short g_k;
 	{
 		node64** nodes = new node64*[256];
-		unsigned short i, j;
-		for (i = j = 0; i < 256; ++i) {
+		unsigned char i = 0;
+		unsigned short j = 0;
+		do {
 			if (frequence[i])
 				nodes[j++] = new nodeLeaf64(i, frequence[i]);
-		}
+		} while (++i);
 		if (!j) {
 			delete[] frequence;
 			delete[] nodes;
@@ -123,7 +124,8 @@ calCL:
 	{
 		unsigned char bitCounter = 0;
 		unsigned __int64 temp;
-		for (unsigned short i = 0; i < 256; ++i) {
+		unsigned char i = 0;
+		do {
 			if (frequence[i]) {
 				temp = frequence[i] * table[i].length;
 				charLength += temp>>3;
@@ -133,7 +135,7 @@ calCL:
 					bitCounter -= 8;
 				}
 			}
-		}
+		} while (++i);
 		if (_lastSigBitNum = bitCounter) ++charLength;
 		delete[] frequence;
 	}
@@ -199,8 +201,7 @@ HuffmanTree::HuffmanTree(reader& rReader, unsigned char maxNodeRecordLength)
 	
 fill_leaf:
 	//set the offset to desired point
-	offset += (j&3)?(j>>2)+1:(j>>2);
-	rReader.setOffset(offset);
+	rReader.setOffset(offset + ((j&3)?(j>>2)+1:(j>>2)));
 	//fill the leaves with their corresponding bytes
 	i = 0;  //leaf counter
 	unsigned short h;  //record counter

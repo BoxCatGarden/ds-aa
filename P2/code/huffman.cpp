@@ -19,6 +19,10 @@ huffman::~huffman() {
 
 }
 
+/* detect how many bytes are needed to store n
+*/
+static inline unsigned char byteInt(unsigned __int64 n);
+
 /* write n into c_ary in big endian
    return: the number of bytes used to store n in c_ary
 */
@@ -37,6 +41,8 @@ void huffman::encode(const char* originFile, const char* targetFile, bool comAlw
 	if (!low && !high) {
 		hasError = 1;
 		LastError = "compress a file of size 0";
+		CloseHandle(hOriginalFile);
+		return;
 	}
 	unsigned __int64 oFileSize = __INT64(high,low);
 	HANDLE hOFMapping = fileMapping(hOriginalFile, PAGE_READONLY, oFileSize);
@@ -44,13 +50,12 @@ void huffman::encode(const char* originFile, const char* targetFile, bool comAlw
 	HuffmanTree enTree(oReader);
 
 	/* write head*/
-	unsigned char sizeChar[8];
 	file_head head;
 	head.divFlag = 0;
 	head.sizeHigh = high;
 	head.sizeLow = low;
 	enTree.getTreeInfo(head.tree);
-	unsigned short overhead = 1 + writeInt(sizeChar, oFileSize) + head.tree.length + (head.tree.nodeRecordLength?1:0);
+	unsigned short overhead = 1 + byteInt(oFileSize) + head.tree.length + (head.tree.nodeRecordLength?1:0);
 	head.comFlag = comAlways || (enTree.getCharLength() + overhead < oFileSize)?1:0;
 
 	/* create target file*/
@@ -63,9 +68,8 @@ void huffman::encode(const char* originFile, const char* targetFile, bool comAlw
 			writeFileHead(enWriter, head);
 			oReader.setOffset(0);
 			enWriter.write(oReader);
-			sizeChar[0] = enWriter.lastSigBitNum();
 			enWriter.setOffset(tFileSize-1);
-			enWriter.writer::write(sizeChar, 1);
+			enWriter.writer::write(enWriter.lastSigBitNum(), 1);
 			enWriter.close();
 		} else {
 			writer enWriter(hTFMapping, 0, tFileSize, MB);
@@ -95,7 +99,9 @@ void huffman::decode(const char* originFile, const char* targetFile) {
 	DWORD low = GetFileSize(hOriginalFile, &high);
 	if (!low && !high) {
 		hasError = 1;
-		LastError = "compress a file of size 0";
+		LastError = "decompress a file of size 0";
+		CloseHandle(hOriginalFile);
+		return;
 	}
 	unsigned __int64 oFileSize = __INT64(high,low);
 	HANDLE hOFMapping = fileMapping(hOriginalFile, PAGE_READONLY, oFileSize);
@@ -240,18 +246,21 @@ void huffman::writeBlockHead(writer& rWriter, const block_head& head) {
 
 
 
+
+unsigned char byteInt(unsigned __int64 n) {
+	unsigned char i = 0;
+	while (n) n>>=8, ++i;
+	return i;
+}
+
 unsigned char writeInt(unsigned char* c_ary, unsigned __int64 n) {
 	unsigned char i = 0;
-	unsigned char j = 56;
-	unsigned __int64 k = 0xFF00000000000000;
-	while (k) {
-		if (n&k) {
-			c_ary[i++] = (unsigned char)((n&k)>>j);
-		}
-		k >>= 8;
-		j -= 8;
-	}
-	return i;
+	unsigned char j;
+	unsigned __int64 k = n;
+	while (k) k>>=8, ++i;
+	j = i;
+	while (i) c_ary[--i] = (unsigned char)(n&0xFF), n>>=8;
+	return j;
 }
 
 void readInt(unsigned char* c_ary, unsigned char length, unsigned __int64& n) {
