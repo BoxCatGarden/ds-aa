@@ -23,12 +23,12 @@ huffman::~huffman() {
 */
 static inline unsigned char byteInt(unsigned __int64 n);
 
-/* write n into c_ary in big endian
+/* write n into c_ary in little-endian
    return: the number of bytes used to store n in c_ary
 */
 static inline unsigned char writeInt(unsigned char* c_ary, unsigned __int64 n);
 
-/* translate length bytes in c_ary in big endian into n
+/* translate length bytes in c_ary in little-endian into n
 */
 static inline void readInt(unsigned char* c_ary, unsigned char length, unsigned __int64& n);
 
@@ -208,11 +208,10 @@ void huffman::readFileHead(reader& rReader, file_head& head) {
 		if (head.comFlag = flag&_bit[1]) {
 			//read file size
 			unsigned char i = ((flag>>3)&7) + 1;
-			unsigned char* fileSizeChar = new unsigned char[i];
+			unsigned char fileSizeChar[8];
 			unsigned __int64 fileSize;
 			rReader.read(fileSizeChar, i);
 			readInt(fileSizeChar, i, fileSize);
-			delete[] fileSizeChar;
 			head.sizeHigh = (unsigned int)(fileSize>>32);
 			head.sizeLow = (unsigned int)(fileSize&0xFFFFFFFF);
 			//read node record length range
@@ -254,19 +253,27 @@ unsigned char byteInt(unsigned __int64 n) {
 }
 
 unsigned char writeInt(unsigned char* c_ary, unsigned __int64 n) {
+	/* little-endian*/
 	unsigned char i = 0;
+	while (n) c_ary[i++] = (unsigned char)(n&0xFF), n>>=8;
+	return i;
+	/* big-endian*/
+	/*unsigned char i = 0;
 	unsigned char j;
 	unsigned __int64 k = n;
 	while (k) k>>=8, ++i;
 	j = i;
 	while (i) c_ary[--i] = (unsigned char)(n&0xFF), n>>=8;
-	return j;
+	return j;*/
 }
 
 void readInt(unsigned char* c_ary, unsigned char length, unsigned __int64& n) {
 	n = 0;
-	for (unsigned char i = 0; i < length; ++i) {
+	/* little-endian*/
+	while (length) n<<=8, n |= (unsigned __int64)c_ary[--length];
+	/* big-endian*/
+	/*for (unsigned char i = 0; i < length; ++i) {
 		n <<= 8;
 		n |= (unsigned __int64)c_ary[i];
-	}
+	}*/
 }
