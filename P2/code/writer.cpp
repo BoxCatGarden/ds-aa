@@ -53,7 +53,8 @@ unsigned int writer::write(reader& rReader, unsigned int length) {
 unsigned __int64 writer::write(reader& rReader, unsigned __int64 length) {
 	unsigned int low = (unsigned int)(length&0xFFFFFFFF);
 	unsigned int high = (unsigned int)(length>>32);
-	unsigned __int64 i = 0;
+	unsigned __int64 i = high?write(rReader, high):0;
+	if ((unsigned int)i != high) return i;
 	unsigned int j;
 	while (high) {
 		if ((j = write(rReader, (unsigned int)0xFFFFFFFF)) == 0xFFFFFFFF)
