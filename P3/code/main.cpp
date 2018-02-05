@@ -87,6 +87,10 @@ bool getInputStr(string& s) {
 			if (s.length()){
 				s.erase(s.end()-1);
 				cout << "\b \b";
+				if (s.length()&&(s[s.length()-1]&0x80)) {
+					s.erase(s.end()-1);
+					cout << "\b \b";
+				}
 			}
 		} else {
 			s += c;
@@ -114,7 +118,6 @@ void printInst() {
 3.If you want to reload a map, press key <Esc> on your keyboard to\n\
   return to the loading page.\n\
 4.You can press key <Esc> to quit when in loading page.\n\
-5.Please ensure that what you enter is in English.\n\
 OVER\n\
 \n\
 Press any key except <Esc> to continue; <Esc> to quit...";
